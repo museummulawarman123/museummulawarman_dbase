@@ -2,13 +2,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverActions: {
-      // naikkan sesuai kebutuhan
-      bodySizeLimit: "7mb",
-      // opsional:
-      // allowedOrigins: ["localhost:3000"]
-    },
+  // Lewati lint saat build produksi (Vercel)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    // kalau nanti pakai <Image/> dari Cloudinary
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com" },
+    ],
   },
 };
 

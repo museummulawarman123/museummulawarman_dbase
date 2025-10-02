@@ -1,6 +1,7 @@
 // app/admin/koleksi/tambah/page.tsx
 import { redirect } from "next/navigation";
 import { createKoleksi } from "@/app/api/admin/koleksi/action";
+import Link from "next/link";
 
 const CATEGORY_OPTIONS = [
   ["GEOLOGIKA", "Geologika"],
@@ -167,12 +168,13 @@ export default async function TambahKoleksiPage() {
           <input name="image" type="file" accept="image/*" className="border rounded p-2 w-full" />
         </div>
 
-        <div className="flex gap-3">
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button>
-          <a href="/admin/koleksi" className="px-4 py-2 rounded border">
-            Batal
-          </a>
-        </div>
+       <div className="flex gap-3">
+  <button className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button>
+  {/* dulu pakai <a href="/admin/koleksi">Batal</a> */}
+  <Link href="/admin/koleksi" className="px-4 py-2 rounded border">
+    Batal
+  </Link>
+</div>
       </form>
     </div>
   );
