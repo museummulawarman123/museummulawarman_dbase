@@ -7,6 +7,15 @@ generator client {
   provider = "prisma-client-js"
   engineType = "binary"
 }
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("STAFF") // ADMIN / STAFF
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 enum Category {
   GEOLOGIKA
@@ -25,9 +34,11 @@ enum AcquisitionMethod {
   HADIAH
   GANTI_RUGI
   BELI
-  HIBAH
   TEMUAN
+  HIBAH
+  LAINNYA
 }
+
 
 model CollectionItem {
   id           String   @id @default(cuid())
