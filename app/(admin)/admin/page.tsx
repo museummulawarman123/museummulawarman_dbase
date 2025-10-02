@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 export default async function AdminDashboardPage() {
   const TARGET_TOTAL =
-    Number(process.env.TOTAL_KOLEKSI) > 0 ? Number(process.env.TOTAL_KOLEKSI) : 5039;
+    Number(process.env.TOTAL_KOLEKSI) > 0 ? Number(process.env.TOTAL_KOLEKSI) : 5309;
 
   const totalInput = await prisma.collectionItem.count();
 
