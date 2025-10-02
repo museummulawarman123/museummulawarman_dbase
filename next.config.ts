@@ -1,7 +1,15 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      // naikkan sesuai kebutuhan
+      bodySizeLimit: "7mb",
+      // opsional:
+      // allowedOrigins: ["localhost:3000"]
+    },
+  },
 };
 
 export default nextConfig;

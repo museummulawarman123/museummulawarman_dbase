@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+enum Category {
+  GEOLOGIKA
+  BIOLOGIKA
+  ETNOGRAFIKA
+  ARKEOLOGIKA
+  HISTORIKA
+  NUMISMATIKA_HERALDIKA
+  FILOLOGIKA
+  KERAMOLOGIKA
+  SENI_RUPA
+  TEKNOLOGIKA
+}
+
+enum AcquisitionMethod {
+  HADIAH
+  GANTI_RUGI
+  BELI
+  HIBAH
+  TEMUAN
+}
+
+model CollectionItem {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+
+  regNumber    String?
+  invNumber    String?
+
+  description  String?
+  period       String?
+  material     String?
+
+  lengthCm     Int?
+  widthCm      Int?
+  heightCm     Int?
+  diameterTop  Int?
+  diameterMid  Int?
+  diameterBot  Int?
+  weightGr     Int?
+
+  originPlace        String?
+  foundPlace         String?
+  category           Category?
+  acquisitionMethod  AcquisitionMethod?
+
+  imageUrl     String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([slug])
+  @@index([name])
+}
