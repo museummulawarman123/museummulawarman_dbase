@@ -27,32 +27,6 @@ export default async function KoleksiPage() {
     },
   });
 
-  // kalau kosong, pakai dummy contoh
-  if (items.length === 0) {
-    items = [
-      {
-        id: "dummy-1",
-        slug: "patung-arca-kuno",
-        name: "Patung Arca Kuno",
-        imageUrl: "/dummy-arca.jpg",
-        category: "ARKEOLOGIKA",
-      },
-      {
-        id: "dummy-2",
-        slug: "naskah-lontar",
-        name: "Naskah Lontar Kuno",
-        imageUrl: "/dummy-naskah.jpg",
-        category: "FILOLOGIKA",
-      },
-      {
-        id: "dummy-3",
-        slug: "lukisan-tradisional",
-        name: "Lukisan Tradisional",
-        imageUrl: "/dummy-lukisan.jpg",
-        category: "SENI_RUPA",
-      },
-    ];
-  }
 
   return (
     <main className="px-6 md:px-12 py-12">

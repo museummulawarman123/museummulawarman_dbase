@@ -1,7 +1,7 @@
-// app/admin/koleksi/tambah/page.tsx
 import { redirect } from "next/navigation";
 import { createKoleksi } from "@/app/api/admin/koleksi/action";
 import Link from "next/link";
+import CloudinaryUploader from "@/component/CloudinaryUploader";
 
 const CATEGORY_OPTIONS = [
   ["GEOLOGIKA", "Geologika"],
@@ -30,15 +30,15 @@ export default async function TambahKoleksiPage() {
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Tambah Koleksi</h1>
 
-      {/* PENTING: JANGAN set method / encType kalau pakai server action */}
+      {/* JANGAN set method/encType kalau pakai server action */}
       <form
         action={async (formData) => {
           "use server";
           const res = await createKoleksi(formData);
-          if (res.ok) {
+          if (res?.ok) {
             redirect("/admin/koleksi");
           }
-          // kalau gagal, biarkan tetap di halaman ini (Next akan re-render)
+          // TODO: tampilkan error di UI jika perlu
         }}
         className="space-y-4"
       >
@@ -162,19 +162,17 @@ export default async function TambahKoleksiPage() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium">Foto</label>
-          {/* file input tetap biasa saja; Next akan kirim sebagai multipart untuk server action */}
-          <input name="image" type="file" accept="image/*" className="border rounded p-2 w-full" />
-        </div>
+        {/* Foto (upload langsung ke Cloudinary) */}
+        <CloudinaryUploader label="Foto" name="imageUrl" />
 
-       <div className="flex gap-3">
-  <button className="bg-indigo-600 text-white px-4 py-2 rounded">Simpan</button>
-  {/* dulu pakai <a href="/admin/koleksi">Batal</a> */}
-  <Link href="/admin/koleksi" className="px-4 py-2 rounded border">
-    Batal
-  </Link>
-</div>
+        <div className="flex gap-3">
+          <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded">
+            Simpan
+          </button>
+          <Link href="/admin/koleksi" className="px-4 py-2 rounded border">
+            Batal
+          </Link>
+        </div>
       </form>
     </div>
   );

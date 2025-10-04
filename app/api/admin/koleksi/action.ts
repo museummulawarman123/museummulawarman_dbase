@@ -2,22 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 
-function ensureUnsignedEnv() {
-  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_UPLOAD_PRESET) {
-    throw new Error("Set CLOUDINARY_CLOUD_NAME & CLOUDINARY_UPLOAD_PRESET di .env.local lalu restart dev server.");
-  }
-}
-
-/* ================== Upload Guard ================== */
-const ALLOWED_MIME = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
-const MAX_UPLOAD_BYTES = Number(process.env.UPLOAD_MAX_BYTES || 4 * 1024 * 1024); // 4MB default
-
 /* ================== Helpers ================== */
 function pickStr(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -30,35 +14,36 @@ function pickInt(v: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/* Upload ke Cloudinary dari File browser (dengan validasi & log) */
+/* ================== (Opsional) Upload via server fallback ==================
+   Tetap disediakan kalau suatu saat kamu kirim "image" kecil lewat server. */
 async function uploadImageFromFormFile(file: File): Promise<string> {
-  const cloud = process.env.CLOUDINARY_CLOUD_NAME!;
-  const preset = process.env.CLOUDINARY_UPLOAD_PRESET!;
-  const folder = process.env.CLOUDINARY_FOLDER || "koleksi";
+  // Jalur unsigned (aman untuk server juga)
+  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || process.env.CLOUDINARY_UPLOAD_PRESET;
+  const folder = process.env.NEXT_PUBLIC_CLOUDINARY_FOLDER || process.env.CLOUDINARY_FOLDER || "koleksi";
 
   if (!cloud || !preset) {
-    throw new Error("CLOUDINARY_CLOUD_NAME & CLOUDINARY_UPLOAD_PRESET wajib di .env.local");
+    throw new Error("Cloudinary env belum di-set (CLOUDINARY_* atau NEXT_PUBLIC_*).");
   }
 
   const fd = new FormData();
-  fd.append("upload_preset", preset);  // unsigned preset
+  fd.append("upload_preset", preset);
   fd.append("folder", folder);
-  fd.append("file", file);             // langsung kirim File dari form
+  fd.append("file", file);
 
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
     method: "POST",
     body: fd,
   });
-
   if (!res.ok) {
-    const text = await res.text();
-    console.error("[cloudinary unsigned upload] failed:", res.status, text);
+    const t = await res.text();
+    console.error("[cloudinary upload fallback] failed:", res.status, t);
     throw new Error(`Cloudinary upload failed: ${res.status}`);
   }
-
   const json = await res.json();
   return json.secure_url as string;
 }
+
 /* ================== CREATE ================== */
 export async function createKoleksi(formData: FormData) {
   try {
@@ -83,12 +68,15 @@ export async function createKoleksi(formData: FormData) {
     const foundPlace = pickStr(formData.get("foundPlace"));
     const acquisitionMethod = pickStr(formData.get("acquisitionMethod"));
 
-    let imageUrl: string | null = null;
-    const file = formData.get("image");
-    if (file && file instanceof File && file.size > 0) {
-      imageUrl = await uploadImageFromFormFile(file);
-    } else {
-      console.log("[create] no image uploaded.");
+    // ⬇️ UTAMAKAN URL dari client uploader
+    let imageUrl: string | null = pickStr(formData.get("imageUrl"));
+
+    // fallback: kalau masih ada file (dev lokal kecil) → upload via server
+    if (!imageUrl) {
+      const file = formData.get("image");
+      if (file && file instanceof File && file.size > 0) {
+        imageUrl = await uploadImageFromFormFile(file);
+      }
     }
 
     if (!name || !slug) throw new Error("Nama dan slug wajib diisi.");
@@ -127,23 +115,16 @@ export async function createKoleksi(formData: FormData) {
 /* ================== UPDATE ================== */
 export async function updateCollection(id: string, formData: FormData) {
   try {
-    // Log supaya tahu FormData-nya punya file atau tidak
-    const probe = formData.get("image");
-    console.log("[update] image field:", probe ? typeof probe : probe);
-
-    // Identitas
     const name = pickStr(formData.get("name"));
     const slug = pickStr(formData.get("slug"));
     const category = pickStr(formData.get("category"));
     const regNumber = pickStr(formData.get("regNumber"));
     const invNumber = pickStr(formData.get("invNumber"));
 
-    // Info tambahan
     const period = pickStr(formData.get("period"));
     const material = pickStr(formData.get("material"));
     const description = pickStr(formData.get("description"));
 
-    // Dimensi
     const lengthCm = pickInt(formData.get("lengthCm"));
     const widthCm = pickInt(formData.get("widthCm"));
     const heightCm = pickInt(formData.get("heightCm"));
@@ -152,18 +133,19 @@ export async function updateCollection(id: string, formData: FormData) {
     const diameterBot = pickInt(formData.get("diameterBot"));
     const weightGr = pickInt(formData.get("weightGr"));
 
-    // Asal-usul
     const originPlace = pickStr(formData.get("originPlace"));
     const foundPlace = pickStr(formData.get("foundPlace"));
     const acquisitionMethod = pickStr(formData.get("acquisitionMethod"));
 
-    // Gambar (opsional)
-    let imageUrl: string | undefined;
-    const img = formData.get("image");
-    if (img && img instanceof File && img.size > 0) {
-      imageUrl = await uploadImageFromFormFile(img);
-    } else {
-      console.log("[update] no new image uploaded.");
+    // ⬇️ UTAMAKAN imageUrl dari client uploader
+    let imageUrl: string | undefined = pickStr(formData.get("imageUrl")) ?? undefined;
+
+    // fallback: kalau masih ada file → upload via server
+    if (!imageUrl) {
+      const img = formData.get("image");
+      if (img && img instanceof File && img.size > 0) {
+        imageUrl = await uploadImageFromFormFile(img);
+      }
     }
 
     await prisma.collectionItem.update({
@@ -186,9 +168,7 @@ export async function updateCollection(id: string, formData: FormData) {
         weightGr,
         originPlace,
         foundPlace,
-        ...(acquisitionMethod !== null && {
-          acquisitionMethod: acquisitionMethod as any,
-        }),
+        ...(acquisitionMethod !== null && { acquisitionMethod: acquisitionMethod as any }),
         ...(imageUrl && { imageUrl }),
       },
     });

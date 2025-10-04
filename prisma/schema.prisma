@@ -1,20 +1,49 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-  engineType = "binary"
-}
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
   name      String?
-  role      String   @default("STAFF") // ADMIN / STAFF
+  role      String   @default("STAFF")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CollectionItem {
+  id                String             @id @default(cuid())
+  slug              String             @unique
+  name              String
+  regNumber         String?
+  invNumber         String?
+  description       String?
+  period            String?
+  material          String?
+  imageUrl          String?
+  lengthCm          Int?
+  widthCm           Int?
+  heightCm          Int?
+  weightGr          Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  diameterTop       Int?
+  acquisitionMethod AcquisitionMethod?
+  diameterBot       Int?
+  diameterMid       Int?
+  foundPlace        String?
+  originPlace       String?
+  category          Category?
+
+  @@index([slug])
+  @@index([name])
 }
 
 enum Category {
@@ -37,39 +66,4 @@ enum AcquisitionMethod {
   TEMUAN
   HIBAH
   LAINNYA
-}
-
-
-model CollectionItem {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  name         String
-
-  regNumber    String?
-  invNumber    String?
-
-  description  String?
-  period       String?
-  material     String?
-
-  lengthCm     Int?
-  widthCm      Int?
-  heightCm     Int?
-  diameterTop  Int?
-  diameterMid  Int?
-  diameterBot  Int?
-  weightGr     Int?
-
-  originPlace        String?
-  foundPlace         String?
-  category           Category?
-  acquisitionMethod  AcquisitionMethod?
-
-  imageUrl     String?
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([slug])
-  @@index([name])
 }

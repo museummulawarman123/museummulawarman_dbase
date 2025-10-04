@@ -2,15 +2,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Lewati lint saat build produksi (Vercel)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  images: {
-    // kalau nanti pakai <Image/> dari Cloudinary
-    remotePatterns: [
-      { protocol: "https", hostname: "res.cloudinary.com" },
-    ],
+  experimental: {
+    // <-- kuncinya di bawah 'experimental'
+    serverActions: {
+      // bentuk string '10mb' aman di Next 15.x
+      bodySizeLimit: "15mb", // atau "20mb"
+    },
   },
 };
 

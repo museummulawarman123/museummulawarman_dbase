@@ -71,7 +71,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="my-3 border-t border-dashed border-indigo-100/70" />
 
             <SidebarItem
-              href="/admin/logout"
+              href="/api/logout"
               icon={<LogOut className="h-4 w-4" />}
             >
               Keluar
