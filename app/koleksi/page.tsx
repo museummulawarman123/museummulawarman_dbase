@@ -1,21 +1,53 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 import Link from "next/link";
-
 import { prisma } from "@/lib/prisma";
 
-// bikin tipe sederhana untuk item koleksi
-type ItemLite = {
-  id: string;
-  slug: string;
-  name: string;
-  imageUrl?: string | null;
-  category?: string | null;
+type Search = { q?: string; cat?: string };
+
+const CAT_LABEL: Record<string, string> = {
+  GEOLOGIKA: "Geologika",
+  BIOLOGIKA: "Biologika",
+  ETNOGRAFIKA: "Etnografika",
+  ARKEOLOGIKA: "Arkeologika",
+  HISTORIKA: "Historika",
+  NUMISMATIKA_HERALDIKA: "Numismatika / Heraldika",
+  FILOLOGIKA: "Filologika",
+  KERAMOLOGIKA: "Keramologika",
+  SENI_RUPA: "Seni Rupa",
+  TEKNOLOGIKA: "Teknologika",
 };
 
-export default async function KoleksiPage() {
-  let items: ItemLite[] = await prisma.collectionItem.findMany({
+export default async function KoleksiPage({
+  searchParams,
+}: {
+  searchParams: Search;
+}) {
+  const q = decodeURIComponent((searchParams.q ?? "").trim());
+  const cat = decodeURIComponent((searchParams.cat ?? "").trim());
+
+  // bangun where secara bertahap (lebih “kebaca” oleh Prisma)
+  const where: any = {};
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { slug: { contains: q, mode: "insensitive" } },
+      { regNumber: { contains: q, mode: "insensitive" } },
+      { invNumber: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { material: { contains: q, mode: "insensitive" } },
+      { originPlace: { contains: q, mode: "insensitive" } },
+      { foundPlace: { contains: q, mode: "insensitive" } },
+    ];
+  }
+  if (cat) {
+    // jika schema pakai enum, cast saja ke any
+    where.category = cat as any;
+  }
+
+  const items = await prisma.collectionItem.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     take: 30,
     select: {
@@ -27,18 +59,45 @@ export default async function KoleksiPage() {
     },
   });
 
-
   return (
-    <main className="px-6 md:px-12 py-12">
-      <h1 className="text-2xl md:text-3xl font-serif font-bold mb-8 text-slate-800">
+    <main className="px-6 md:px-12 py-12 space-y-6">
+      <h1 className="text-2xl md:text-3xl font-serif font-bold text-slate-800">
         Koleksi Museum
       </h1>
+
+      {/* SEARCH BAR */}
+      <form method="GET" className="flex flex-col sm:flex-row gap-3">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Cari nama, nomor reg/inv, bahan, tempat…"
+          className="border rounded px-3 py-2 w-full sm:max-w-xl"
+        />
+        <select name="cat" defaultValue={cat} className="border rounded px-3 py-2">
+          <option value="">Semua Kategori</option>
+          {Object.entries(CAT_LABEL).map(([val, label]) => (
+            <option key={val} value={val}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button className="px-4 py-2 rounded bg-amber-600 text-white">Cari</button>
+      </form>
+
+      {(q || cat) && (
+        <p className="text-sm text-slate-500">
+          Menampilkan <b>{items.length}</b> hasil
+          {q ? <> untuk "<b>{q}</b>"</> : null}
+          {cat ? <> dalam <b>{CAT_LABEL[cat] ?? cat}</b></> : null}.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {items.map((item) => (
           <Link
             key={item.id}
-            href={`/koleksi/${item.slug}`}
+            href={`/koleksi/${encodeURIComponent(item.slug)}`}
             className="group bg-white rounded-xl shadow hover:shadow-lg overflow-hidden transition"
           >
             <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
@@ -59,11 +118,16 @@ export default async function KoleksiPage() {
                 {item.name}
               </h2>
               {item.category && (
-                <p className="text-xs text-slate-500 mt-1">{item.category}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {CAT_LABEL[item.category] ?? item.category}
+                </p>
               )}
             </div>
           </Link>
         ))}
+        {!items.length && (
+          <div className="col-span-full text-slate-500">Tidak ada hasil.</div>
+        )}
       </div>
     </main>
   );

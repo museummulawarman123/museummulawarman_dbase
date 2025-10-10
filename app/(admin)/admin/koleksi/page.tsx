@@ -1,9 +1,12 @@
-import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import DeleteButton from "./_parts/DeleteButton";
 
-// Label tampilan
+type Search = { q?: string; cat?: string };
+
 const LABEL: Record<string, string> = {
   GEOLOGIKA: "Geologika",
   BIOLOGIKA: "Biologika",
@@ -20,38 +23,25 @@ const LABEL: Record<string, string> = {
 export default async function AdminKoleksiList({
   searchParams,
 }: {
-  searchParams?: { q?: string };
+  searchParams: Search;
 }) {
-  const q = (searchParams?.q ?? "").trim();
-  const ql = q.toLowerCase();
+  const q = decodeURIComponent((searchParams.q ?? "").trim());
+  const cat = decodeURIComponent((searchParams.cat ?? "").trim());
 
-  const matchedCategories = q
-    ? Object.entries(LABEL)
-        .filter(([enumKey, label]) => {
-          const ek = enumKey.toLowerCase();
-          const lb = label.toLowerCase();
-          return ek.includes(ql) || lb.includes(ql);
-        })
-        .map(([enumKey]) => enumKey)
-    : [];
-
-  const where: Prisma.CollectionItemWhereInput | undefined = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { slug: { contains: q, mode: "insensitive" } },
-          { regNumber: { contains: q, mode: "insensitive" } },
-          { invNumber: { contains: q, mode: "insensitive" } },
-          { material: { contains: q, mode: "insensitive" } },
-          { originPlace: { contains: q, mode: "insensitive" } },
-          { foundPlace: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-          ...matchedCategories.map((c) => ({
-            category: { equals: c as any },
-          })),
-        ],
-      }
-    : undefined;
+  const where: any = {};
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { slug: { contains: q, mode: "insensitive" } },
+      { regNumber: { contains: q, mode: "insensitive" } },
+      { invNumber: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { material: { contains: q, mode: "insensitive" } },
+      { originPlace: { contains: q, mode: "insensitive" } },
+      { foundPlace: { contains: q, mode: "insensitive" } },
+    ];
+  }
+  if (cat) where.category = cat as any;
 
   const items = await prisma.collectionItem.findMany({
     where,
@@ -65,46 +55,40 @@ export default async function AdminKoleksiList({
       category: true,
       imageUrl: true,
     },
-    take: 80,
   });
-
-  const total = await prisma.collectionItem.count({ where });
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold">Data Koleksi</h1>
 
-        <div className="flex gap-2">
-          {/* Search form: GET /admin/koleksi?q=... */}
-          <form action="/admin/koleksi" method="get" className="flex gap-2">
-            <input
-              type="text"
-              name="q"
-              placeholder="Cari di admin…"
-              defaultValue={q}
-              className="border rounded px-3 py-2 w-64"
-            />
-            <button className="px-3 py-2 rounded bg-slate-700 text-white">
-              Cari
-            </button>
-          </form>
+        {/* FORM SEARCH */}
+        <form method="GET" className="flex items-center gap-2">
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Cari nama/slug/reg/inv/…"
+            className="border rounded px-3 py-2"
+          />
+          <select name="cat" defaultValue={cat} className="border rounded px-3 py-2">
+            <option value="">Semua</option>
+            {Object.entries(LABEL).map(([val, label]) => (
+              <option key={val} value={val}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <button className="px-3 py-2 rounded bg-slate-800 text-white">Cari</button>
 
           <Link
             href="/admin/koleksi/new"
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
+            className="bg-indigo-600 text-white px-4 py-2 rounded ml-2"
           >
             Tambah Koleksi
           </Link>
-        </div>
+        </form>
       </div>
-
-      {q && (
-        <p className="text-sm text-slate-600">
-          Hasil admin untuk <span className="font-medium">“{q}”</span> —{" "}
-          {total.toLocaleString("id-ID")} item
-        </p>
-      )}
 
       <div className="overflow-x-auto border rounded">
         <table className="min-w-full text-sm">
@@ -157,11 +141,10 @@ export default async function AdminKoleksiList({
                 </td>
               </tr>
             ))}
-
-            {items.length === 0 && (
+            {!items.length && (
               <tr>
                 <td className="p-4 text-center text-gray-500" colSpan={6}>
-                  {q ? "Tidak ada hasil." : "Belum ada data."}
+                  Belum ada data.
                 </td>
               </tr>
             )}
