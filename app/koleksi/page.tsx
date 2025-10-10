@@ -19,11 +19,10 @@ const CAT_LABEL: Record<string, string> = {
   TEKNOLOGIKA: "Teknologika",
 };
 
-export default async function KoleksiPage({
-  searchParams,
-}: {
-  searchParams: Search;
+export default async function KoleksiPage(props: {
+  searchParams: Promise<{ q?: string; cat?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const q = decodeURIComponent((searchParams.q ?? "").trim());
   const cat = decodeURIComponent((searchParams.cat ?? "").trim());
 

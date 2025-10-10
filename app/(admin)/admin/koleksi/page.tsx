@@ -5,8 +5,6 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import DeleteButton from "./_parts/DeleteButton";
 
-type Search = { q?: string; cat?: string };
-
 const LABEL: Record<string, string> = {
   GEOLOGIKA: "Geologika",
   BIOLOGIKA: "Biologika",
@@ -20,11 +18,11 @@ const LABEL: Record<string, string> = {
   TEKNOLOGIKA: "Teknologika",
 };
 
-export default async function AdminKoleksiList({
-  searchParams,
-}: {
-  searchParams: Search;
+export default async function AdminKoleksiList(props: {
+  searchParams: Promise<{ q?: string; cat?: string }>;
 }) {
+  // ✅ sekarang di-await dulu
+  const searchParams = await props.searchParams;
   const q = decodeURIComponent((searchParams.q ?? "").trim());
   const cat = decodeURIComponent((searchParams.cat ?? "").trim());
 
