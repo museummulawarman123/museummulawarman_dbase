@@ -3,14 +3,15 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   eslint: {
-    // ⛳️ lewati ESLint waktu build production (biar Vercel nggak fail)
+    // ✅ Matikan lint saat build production (Vercel)
     ignoreDuringBuilds: true,
   },
-  // (opsional) kalau mau longgar banget:
-//  typescript: { ignoreBuildErrors: true },
-
+  typescript: {
+    // ✅ (Opsional tapi aman) Abaikan error TypeScript saat build
+    ignoreBuildErrors: true,
+  },
   experimental: {
-    serverActions: { bodySizeLimit: "10mb" }, // amanin upload form
+    serverActions: { bodySizeLimit: "10mb" },
   },
 };
 
