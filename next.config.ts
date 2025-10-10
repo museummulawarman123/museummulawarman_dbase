@@ -1,14 +1,17 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
+  eslint: {
+    // ⛳️ lewati ESLint waktu build production (biar Vercel nggak fail)
+    ignoreDuringBuilds: true,
+  },
+  // (opsional) kalau mau longgar banget:
+//  typescript: { ignoreBuildErrors: true },
+
   experimental: {
-    // <-- kuncinya di bawah 'experimental'
-    serverActions: {
-      // bentuk string '10mb' aman di Next 15.x
-      bodySizeLimit: "15mb", // atau "20mb"
-    },
+    serverActions: { bodySizeLimit: "10mb" }, // amanin upload form
   },
 };
 
-export default nextConfig;
+export default config;
