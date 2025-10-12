@@ -10,7 +10,7 @@ const config = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverActions: { bodySizeLimit: '10mb' },
+    serverActions: { bodySizeLimit: '15mb' },
   },
 };
 
