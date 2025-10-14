@@ -87,6 +87,9 @@ export default async function AdminKoleksiList(props: {
           </Link>
         </form>
       </div>
+      // di /app/(admin)/admin/koleksi/page.tsx – di header halaman
+<Link href="/admin/koleksi/import" className="border px-3 py-2 rounded">Import Excel</Link>
+
 
       <div className="overflow-x-auto border rounded">
         <table className="min-w-full text-sm">

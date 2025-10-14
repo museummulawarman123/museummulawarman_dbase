@@ -184,24 +184,21 @@ function HeaderAndInfo(props: {
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      {/* Foto */}
-      <div className="overflow-hidden rounded-xl border bg-slate-100 w-full max-w-2xl mx-auto">
-        <div className="overflow-hidden rounded-xl border bg-slate-100 w-full max-w-2xl mx-auto h-[420px]">
+      {/* Foto (no-crop / letterbox) */}
+<div className="rounded-xl border bg-slate-100 w-full max-w-2xl mx-auto h-[420px] flex items-center justify-center overflow-hidden">
   {props.imageUrl ? (
     <img
       src={props.imageUrl}
       alt={props.name}
-      className="h-full w-full object-cover"
+      className="max-h-full max-w-full object-contain"
+      loading="lazy"
     />
   ) : (
-    <div className="flex h-full items-center justify-center text-gray-500">
+    <div className="flex h-full w-full items-center justify-center text-gray-500">
       Tidak ada foto
     </div>
   )}
 </div>
-
-      </div>
-
       {/* Info kanan */}
       <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm text-slate-700">
         <Field label="Nomor Registrasi" value={v(props.regNumber)} />

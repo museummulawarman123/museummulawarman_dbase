@@ -29,6 +29,8 @@ export default async function TambahKoleksiPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Tambah Koleksi</h1>
+// di /app/(admin)/admin/koleksi/page.tsx – di header halaman
+<Link href="/admin/koleksi/import" className="border px-3 py-2 rounded">Import Excel</Link>
 
       {/* JANGAN set method/encType kalau pakai server action */}
       <form
