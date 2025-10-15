@@ -1,7 +1,9 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
-import { createKoleksi } from "@/app/api/admin/koleksi/action";
 import Link from "next/link";
-import CloudinaryUploader from "@/component/CloudinaryUploader";
+import { createKoleksi } from "@/app/api/admin/koleksi/action";
 
 const CATEGORY_OPTIONS = [
   ["GEOLOGIKA", "Geologika"],
@@ -23,16 +25,32 @@ const ACQ_OPTIONS = [
   ["GANTI_RUGI", "Ganti Rugi"],
   ["BELI", "Beli"],
   ["HIBAH", "Hibah"],
+  ["LAINNYA", "Lainnya"],
 ] as const;
 
-export default async function TambahKoleksiPage() {
+export default async function NewCollectionPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Tambah Koleksi</h1>
-// di /app/(admin)/admin/koleksi/page.tsx – di header halaman
-<Link href="/admin/koleksi/import" className="border px-3 py-2 rounded">Import Excel</Link>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header: title kiri, tombol kanan */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-semibold">Tambah Koleksi</h1>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/koleksi/import"
+            className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Import Excel
+          </Link>
+          <Link
+            href="/admin/koleksi"
+            className="inline-flex items-center rounded-md bg-slate-700 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Kembali ke List
+          </Link>
+        </div>
+      </div>
 
-      {/* JANGAN set method/encType kalau pakai server action */}
+      {/* Form Tambah (Server Action) */}
       <form
         action={async (formData) => {
           "use server";
@@ -40,79 +58,81 @@ export default async function TambahKoleksiPage() {
           if (res?.ok) {
             redirect("/admin/koleksi");
           }
-          // TODO: tampilkan error di UI jika perlu
+          // (opsional) kalau mau, bisa tampilkan error pakai redirect ke ?error=...
         }}
         className="space-y-4"
       >
-        <div>
-          <label className="block text-sm font-medium">Nama*</label>
-          <input
-            name="name"
-            required
-            className="border rounded p-2 w-full"
-            placeholder="Nama koleksi"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Slug</label>
-          <input
-            name="slug"
-            className="border rounded p-2 w-full"
-            placeholder="(boleh dikosongkan jika server-mu sudah auto-generate)"
-          />
-          <p className="text-xs text-slate-500 mt-1">
-            Jika dikosongkan dan server belum auto generate, isi manual.
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Kategori*</label>
-          <select name="category" required className="border rounded p-2 w-full">
-            {CATEGORY_OPTIONS.map(([val, label]) => (
-              <option key={val} value={val}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Metode Perolehan</label>
-          <select name="acquisitionMethod" className="border rounded p-2 w-full">
-            {ACQ_OPTIONS.map(([val, label]) => (
-              <option key={val} value={val}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        {/* Identitas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium">No. Registrasi</label>
+            <label className="block text-sm font-medium mb-1">Nama*</label>
+            <input
+              name="name"
+              required
+              className="border rounded p-2 w-full"
+              placeholder="Nama koleksi"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Slug</label>
+            <input
+              name="slug"
+              className="border rounded p-2 w-full"
+              placeholder="Boleh dikosongkan jika sudah auto-generate di server"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Kategori*</label>
+            <select name="category" required className="border rounded p-2 w-full">
+              {CATEGORY_OPTIONS.map(([val, label]) => (
+                <option key={val} value={val}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Cara Perolehan</label>
+            <select name="acquisitionMethod" className="border rounded p-2 w-full">
+              {ACQ_OPTIONS.map(([val, label]) => (
+                <option key={val} value={val}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">No. Registrasi</label>
             <input name="regNumber" className="border rounded p-2 w-full" />
           </div>
           <div>
-            <label className="block text-sm font-medium">No. Inventaris</label>
+            <label className="block text-sm font-medium mb-1">No. Inventaris</label>
             <input name="invNumber" className="border rounded p-2 w-full" />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium">Deskripsi</label>
-          <textarea name="description" className="border rounded p-2 w-full" rows={4} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        {/* Info tambahan */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium">Periode</label>
+            <label className="block text-sm font-medium mb-1">Periode</label>
             <input name="period" className="border rounded p-2 w-full" />
           </div>
           <div>
-            <label className="block text-sm font-medium">Bahan</label>
+            <label className="block text-sm font-medium mb-1">Bahan / Material</label>
             <input name="material" className="border rounded p-2 w-full" />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Deskripsi</label>
+          <textarea
+            name="description"
+            className="border rounded p-2 w-full min-h-[120px]"
+            placeholder="Deskripsi singkat koleksi"
+          />
         </div>
 
         {/* Dimensi */}
@@ -131,7 +151,6 @@ export default async function TambahKoleksiPage() {
               <label className="block text-sm">Tinggi (cm)</label>
               <input name="heightCm" type="number" className="border rounded p-2 w-full" />
             </div>
-
             <div>
               <label className="block text-sm">Diameter Atas (cm)</label>
               <input name="diameterTop" type="number" className="border rounded p-2 w-full" />
@@ -144,29 +163,40 @@ export default async function TambahKoleksiPage() {
               <label className="block text-sm">Diameter Bawah (cm)</label>
               <input name="diameterBot" type="number" className="border rounded p-2 w-full" />
             </div>
-
             <div>
-              <label className="block text-sm">Berat (gr)</label>
+              <label className="block text-sm">Berat (gram)</label>
               <input name="weightGr" type="number" className="border rounded p-2 w-full" />
             </div>
           </div>
         </fieldset>
 
-        {/* Lokasi */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Lokasi/Asal-usul */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm">Tempat Pembuatan</label>
+            <label className="block text-sm font-medium mb-1">Tempat Pembuatan</label>
             <input name="originPlace" className="border rounded p-2 w-full" />
           </div>
           <div>
-            <label className="block text-sm">Tempat Perolehan</label>
+            <label className="block text-sm font-medium mb-1">Tempat Perolehan</label>
             <input name="foundPlace" className="border rounded p-2 w-full" />
           </div>
         </div>
 
-        {/* Foto (upload langsung ke Cloudinary) */}
-        <CloudinaryUploader label="Foto" name="imageUrl" />
+        {/* Foto */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Foto</label>
+          <input
+            name="image"
+            type="file"
+            accept="image/*"
+            className="border rounded p-2 w-full"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Untuk file &gt; 1MB pertimbangkan kompres dulu agar unggah lebih lancar.
+          </p>
+        </div>
 
+        {/* Aksi */}
         <div className="flex gap-3">
           <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded">
             Simpan

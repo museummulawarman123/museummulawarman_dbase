@@ -21,7 +21,7 @@ const LABEL: Record<string, string> = {
 export default async function AdminKoleksiList(props: {
   searchParams: Promise<{ q?: string; cat?: string }>;
 }) {
-  // ✅ sekarang di-await dulu
+  // ✅ Await agar tidak error di server
   const searchParams = await props.searchParams;
   const q = decodeURIComponent((searchParams.q ?? "").trim());
   const cat = decodeURIComponent((searchParams.cat ?? "").trim());
@@ -56,41 +56,54 @@ export default async function AdminKoleksiList(props: {
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="space-y-6">
+      {/* HEADER UTAMA */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold">Data Koleksi</h1>
 
-        {/* FORM SEARCH */}
-        <form method="GET" className="flex items-center gap-2">
-          <input
-            type="search"
-            name="q"
-            defaultValue={q}
-            placeholder="Cari nama/slug/reg/inv/…"
-            className="border rounded px-3 py-2"
-          />
-          <select name="cat" defaultValue={cat} className="border rounded px-3 py-2">
-            <option value="">Semua</option>
-            {Object.entries(LABEL).map(([val, label]) => (
-              <option key={val} value={val}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <button className="px-3 py-2 rounded bg-slate-800 text-white">Cari</button>
-
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/koleksi/import"
+            className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Import Excel
+          </Link>
           <Link
             href="/admin/koleksi/new"
-            className="bg-indigo-600 text-white px-4 py-2 rounded ml-2"
+            className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
             Tambah Koleksi
           </Link>
-        </form>
+        </div>
       </div>
-      // di /app/(admin)/admin/koleksi/page.tsx – di header halaman
-<Link href="/admin/koleksi/import" className="border px-3 py-2 rounded">Import Excel</Link>
 
+      {/* FORM PENCARIAN */}
+      <form method="GET" className="flex flex-wrap items-center gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Cari nama/slug/reg/inv/…"
+          className="border rounded px-3 py-2"
+        />
+        <select
+          name="cat"
+          defaultValue={cat}
+          className="border rounded px-3 py-2"
+        >
+          <option value="">Semua</option>
+          {Object.entries(LABEL).map(([val, label]) => (
+            <option key={val} value={val}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button className="px-3 py-2 rounded bg-slate-800 text-white">
+          Cari
+        </button>
+      </form>
 
+      {/* TABEL DATA */}
       <div className="overflow-x-auto border rounded">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
@@ -144,7 +157,10 @@ export default async function AdminKoleksiList(props: {
             ))}
             {!items.length && (
               <tr>
-                <td className="p-4 text-center text-gray-500" colSpan={6}>
+                <td
+                  className="p-4 text-center text-gray-500"
+                  colSpan={6}
+                >
                   Belum ada data.
                 </td>
               </tr>
