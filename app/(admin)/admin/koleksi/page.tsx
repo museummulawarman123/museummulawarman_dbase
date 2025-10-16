@@ -58,25 +58,28 @@ export default async function AdminKoleksiList(props: {
   return (
     <div className="space-y-6">
       {/* HEADER UTAMA */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-semibold">Data Koleksi</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  {/* Judul di kiri */}
+  <h1 className="text-2xl font-semibold">Data Koleksi</h1>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href="/admin/koleksi/import"
-            className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
-          >
-            Import Excel
-          </Link>
-          <Link
-            href="/admin/koleksi/new"
-            className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-          >
-            Tambah Koleksi
-          </Link>
-        </div>
-      </div>
+  {/* Area tombol di kanan (responsif) */}
+  <div className="flex items-center gap-2">
+    <a
+      href="/admin/koleksi/import"
+      className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+      title="Import CSV/Excel"
+    >
+      Import Excel
+    </a>
 
+    <a
+      href="/admin/koleksi/new"
+      className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+    >
+      Tambah Koleksi
+    </a>
+  </div>
+</div>
       {/* FORM PENCARIAN */}
       <form method="GET" className="flex flex-wrap items-center gap-2">
         <input
