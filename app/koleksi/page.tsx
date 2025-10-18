@@ -6,6 +6,15 @@ import { prisma } from "@/lib/prisma";
 
 type Search = { q?: string; cat?: string };
 
+// tipe lokal hanya kolom yang kita gunakan
+type ItemLite = {
+  id: string;
+  slug: string;
+  name: string;
+  imageUrl?: string | null;
+  category?: string | null;
+};
+
 const CAT_LABEL: Record<string, string> = {
   GEOLOGIKA: "Geologika",
   BIOLOGIKA: "Biologika",
@@ -20,13 +29,12 @@ const CAT_LABEL: Record<string, string> = {
 };
 
 export default async function KoleksiPage(props: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<Search>;
 }) {
   const searchParams = await props.searchParams;
   const q = decodeURIComponent((searchParams.q ?? "").trim());
   const cat = decodeURIComponent((searchParams.cat ?? "").trim());
 
-  // bangun where secara bertahap (lebih “kebaca” oleh Prisma)
   const where: any = {};
   if (q) {
     where.OR = [
@@ -40,12 +48,9 @@ export default async function KoleksiPage(props: {
       { foundPlace: { contains: q, mode: "insensitive" } },
     ];
   }
-  if (cat) {
-    // jika schema pakai enum, cast saja ke any
-    where.category = cat as any;
-  }
+  if (cat) where.category = cat as any;
 
-  const items = await prisma.collectionItem.findMany({
+  const items = (await prisma.collectionItem.findMany({
     where,
     orderBy: { createdAt: "desc" },
     take: 30,
@@ -56,7 +61,7 @@ export default async function KoleksiPage(props: {
       imageUrl: true,
       category: true,
     },
-  });
+  })) as ItemLite[];
 
   return (
     <main className="px-6 md:px-12 py-12 space-y-6">
@@ -64,7 +69,6 @@ export default async function KoleksiPage(props: {
         Koleksi Museum
       </h1>
 
-      {/* SEARCH BAR */}
       <form method="GET" className="flex flex-col sm:flex-row gap-3">
         <input
           type="search"
@@ -124,9 +128,7 @@ export default async function KoleksiPage(props: {
             </div>
           </Link>
         ))}
-        {!items.length && (
-          <div className="col-span-full text-slate-500">Tidak ada hasil.</div>
-        )}
+        {!items.length && <div className="col-span-full text-slate-500">Tidak ada hasil.</div>}
       </div>
     </main>
   );

@@ -5,6 +5,18 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import DeleteButton from "./_parts/DeleteButton";
 
+type Search = { q?: string; cat?: string };
+
+type ItemRow = {
+  id: string;
+  slug: string;
+  name: string;
+  imageUrl?: string | null;
+  category?: string | null;
+  regNumber?: string | null;
+  invNumber?: string | null;
+};
+
 const LABEL: Record<string, string> = {
   GEOLOGIKA: "Geologika",
   BIOLOGIKA: "Biologika",
@@ -19,9 +31,8 @@ const LABEL: Record<string, string> = {
 };
 
 export default async function AdminKoleksiList(props: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<Search>;
 }) {
-  // ✅ Await agar tidak error di server
   const searchParams = await props.searchParams;
   const q = decodeURIComponent((searchParams.q ?? "").trim());
   const cat = decodeURIComponent((searchParams.cat ?? "").trim());
@@ -41,7 +52,7 @@ export default async function AdminKoleksiList(props: {
   }
   if (cat) where.category = cat as any;
 
-  const items = await prisma.collectionItem.findMany({
+  const items = (await prisma.collectionItem.findMany({
     where,
     orderBy: { createdAt: "desc" },
     select: {
@@ -53,34 +64,30 @@ export default async function AdminKoleksiList(props: {
       category: true,
       imageUrl: true,
     },
-  });
+  })) as ItemRow[];
 
   return (
     <div className="space-y-6">
-      {/* HEADER UTAMA */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-  {/* Judul di kiri */}
-  <h1 className="text-2xl font-semibold">Data Koleksi</h1>
+        <h1 className="text-2xl font-semibold">Data Koleksi</h1>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/koleksi/import"
+            className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+            title="Import CSV/Excel"
+          >
+            Import Excel
+          </Link>
 
-  {/* Area tombol di kanan (responsif) */}
-  <div className="flex items-center gap-2">
-    <a
-      href="/admin/koleksi/import"
-      className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
-      title="Import CSV/Excel"
-    >
-      Import Excel
-    </a>
+          <Link
+            href="/admin/koleksi/new"
+            className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            Tambah Koleksi
+          </Link>
+        </div>
+      </div>
 
-    <a
-      href="/admin/koleksi/new"
-      className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-    >
-      Tambah Koleksi
-    </a>
-  </div>
-</div>
-      {/* FORM PENCARIAN */}
       <form method="GET" className="flex flex-wrap items-center gap-2">
         <input
           type="search"
@@ -89,11 +96,7 @@ export default async function AdminKoleksiList(props: {
           placeholder="Cari nama/slug/reg/inv/…"
           className="border rounded px-3 py-2"
         />
-        <select
-          name="cat"
-          defaultValue={cat}
-          className="border rounded px-3 py-2"
-        >
+        <select name="cat" defaultValue={cat} className="border rounded px-3 py-2">
           <option value="">Semua</option>
           {Object.entries(LABEL).map(([val, label]) => (
             <option key={val} value={val}>
@@ -101,12 +104,9 @@ export default async function AdminKoleksiList(props: {
             </option>
           ))}
         </select>
-        <button className="px-3 py-2 rounded bg-slate-800 text-white">
-          Cari
-        </button>
+        <button className="px-3 py-2 rounded bg-slate-800 text-white">Cari</button>
       </form>
 
-      {/* TABEL DATA */}
       <div className="overflow-x-auto border rounded">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
@@ -124,11 +124,7 @@ export default async function AdminKoleksiList(props: {
               <tr key={it.id} className="border-t">
                 <td className="p-2">
                   {it.imageUrl ? (
-                    <img
-                      src={it.imageUrl}
-                      alt={it.name}
-                      className="h-12 w-12 object-cover rounded border"
-                    />
+                    <img src={it.imageUrl} alt={it.name} className="h-12 w-12 object-cover rounded border" />
                   ) : (
                     <div className="h-12 w-12 rounded border bg-gray-50" />
                   )}
@@ -136,23 +132,11 @@ export default async function AdminKoleksiList(props: {
                 <td className="p-2 font-medium">{it.name}</td>
                 <td className="p-2">{it.regNumber ?? "-"}</td>
                 <td className="p-2">{it.invNumber ?? "-"}</td>
-                <td className="p-2">
-                  {it.category ? LABEL[it.category] ?? it.category : "-"}
-                </td>
+                <td className="p-2">{it.category ? LABEL[it.category] ?? it.category : "-"}</td>
                 <td className="p-2">
                   <div className="flex flex-wrap gap-2">
-                    <Link
-                      href={`/koleksi/${encodeURIComponent(it.slug)}`}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Lihat
-                    </Link>
-                    <Link
-                      href={`/admin/koleksi/${it.slug ?? it.id}/edit`}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Edit
-                    </Link>
+                    <Link href={`/koleksi/${encodeURIComponent(it.slug)}`} className="px-2 py-1 border rounded">Lihat</Link>
+                    <Link href={`/admin/koleksi/${it.slug ?? it.id}/edit`} className="px-2 py-1 border rounded">Edit</Link>
                     <DeleteButton id={it.id} />
                   </div>
                 </td>
@@ -160,12 +144,7 @@ export default async function AdminKoleksiList(props: {
             ))}
             {!items.length && (
               <tr>
-                <td
-                  className="p-4 text-center text-gray-500"
-                  colSpan={6}
-                >
-                  Belum ada data.
-                </td>
+                <td className="p-4 text-center text-gray-500" colSpan={6}>Belum ada data.</td>
               </tr>
             )}
           </tbody>
